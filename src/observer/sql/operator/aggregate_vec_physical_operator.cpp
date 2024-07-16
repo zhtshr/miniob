@@ -100,8 +100,16 @@ void AggregateVecPhysicalOperator::update_aggregate_state(void *state, const Col
 
 RC AggregateVecPhysicalOperator::next(Chunk &chunk)
 {
-  // your code here
-  exit(-1);
+  if (emited_) {
+    return RC::RECORD_EOF;
+  }
+  RC rc = RC::SUCCESS;
+  output_chunk_.reset_data();
+  for (int i = 0; i < output_chunk_.column_num(); i++) {
+    output_chunk_.column(i).append_one((char *)aggr_values_.at(i));
+  }
+  chunk.reference(output_chunk_);
+  return rc;
 }
 
 RC AggregateVecPhysicalOperator::close()

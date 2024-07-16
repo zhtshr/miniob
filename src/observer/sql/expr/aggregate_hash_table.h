@@ -95,6 +95,9 @@ public:
   StandardHashTable::iterator end() { return aggr_values_.end(); }
 
 private:
+  RC aggregate(std::vector<Value> &values, std::vector<Value> &values_to_aggregate);
+
+private:
   /// group by values -> aggregate values
   StandardHashTable                aggr_values_;
   std::vector<AggregateExpr::Type> aggr_types_;

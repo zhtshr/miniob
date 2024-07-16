@@ -14,8 +14,41 @@ See the Mulan PSL v2 for more details. */
 
 RC StandardAggregateHashTable::add_chunk(Chunk &groups_chunk, Chunk &aggrs_chunk)
 {
-  // your code here
-  exit(-1);
+  for (int i = 0; i < groups_chunk.rows(); i++) {
+    std::vector<Value> groups_value;
+    std::vector<Value> aggrs_value;
+    for (int j = 0; j < groups_chunk.column_num(); j++) {
+      groups_value.push_back(groups_chunk.get_value(j, i));
+      aggrs_value.push_back(aggrs_chunk.get_value(j, i));
+    }
+    if (aggr_values_.find(groups_value) == aggr_values_.end()) {  // not exist in hash table
+      aggr_values_.insert(std::make_pair(groups_value, aggrs_value));
+    }
+    aggregate(aggr_values_[groups_value], aggrs_value);
+  }
+  return RC::SUCCESS;
+}
+
+RC StandardAggregateHashTable::aggregate(std::vector<Value> &values, std::vector<Value> &values_to_aggregate)
+{
+  for (size_t i = 0; i < values.size(); i++) {
+    if (aggr_types_[i] == AggregateExpr::Type::SUM) {
+      if (values[i].attr_type() == AttrType::INTS) {
+        int value = values[i].get_int();
+        value += values_to_aggregate[i].get_int();
+        values[i].set_int(value);
+      } else if (values[i].attr_type() == AttrType::FLOATS) {
+        float value = values[i].get_float();
+        value += values_to_aggregate[i].get_float();
+        values[i].set_float(value);
+      } else {
+        ASSERT(false, "not supported value type");
+      }
+    } else {
+      ASSERT(false, "not supported aggregate type");
+    }
+  }
+  return RC::SUCCESS;
 }
 
 void StandardAggregateHashTable::Scanner::open_scan()
