@@ -516,6 +516,8 @@ RC PaxRecordPageHandler::get_chunk(Chunk &chunk)
   for (int i = 0; i < chunk.column_num(); i++) {
     int start = bitmap.next_setted_bit(0);
     while (start != -1) {
+      if (chunk.column(i).count() >= chunk.capacity())
+        break;
       int col_id = chunk.column_ids(i);
       char *column_data = get_field_data(start, col_id);
       chunk.column(i).append_one(column_data);
