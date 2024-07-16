@@ -281,12 +281,12 @@ protected:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-struct DISABLED_InsertionBenchmark : public BenchmarkBase
+struct InsertionBenchmark : public BenchmarkBase
 {
   string Name() const override { return "insertion"; }
 };
 
-BENCHMARK_DEFINE_F(DISABLED_InsertionBenchmark, Insertion)(State &state)
+BENCHMARK_DEFINE_F(InsertionBenchmark, Insertion)(State &state)
 {
   IntegerGenerator generator(1, 1 << 31);
   Stat             stat;
@@ -300,11 +300,11 @@ BENCHMARK_DEFINE_F(DISABLED_InsertionBenchmark, Insertion)(State &state)
   state.counters["other"]   = Counter(stat.insert_other_count, Counter::kIsRate);
 }
 
-BENCHMARK_REGISTER_F(DISABLED_InsertionBenchmark, Insertion)->Threads(10);
+BENCHMARK_REGISTER_F(InsertionBenchmark, Insertion)->Threads(10);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class DISABLED_DeletionBenchmark : public BenchmarkBase
+class DeletionBenchmark : public BenchmarkBase
 {
 public:
   string Name() const override { return "deletion"; }
@@ -335,7 +335,7 @@ protected:
   vector<RID>   rids_;
 };
 
-BENCHMARK_DEFINE_F(DISABLED_DeletionBenchmark, Deletion)(State &state)
+BENCHMARK_DEFINE_F(DeletionBenchmark, Deletion)(State &state)
 {
   IntegerGenerator generator(0, static_cast<int>(rids_.size() - 1));
   Stat             stat;
@@ -351,11 +351,11 @@ BENCHMARK_DEFINE_F(DISABLED_DeletionBenchmark, Deletion)(State &state)
   state.counters["other"]     = Counter(stat.delete_other_count, Counter::kIsRate);
 }
 
-BENCHMARK_REGISTER_F(DISABLED_DeletionBenchmark, Deletion)->Threads(10)->Arg(4 * 10000);
+BENCHMARK_REGISTER_F(DeletionBenchmark, Deletion)->Threads(10)->Arg(4 * 10000);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class DISABLED_ScanBenchmark : public BenchmarkBase
+class ScanBenchmark : public BenchmarkBase
 {
 public:
   string Name() const override { return "scan"; }
@@ -375,7 +375,7 @@ public:
   }
 };
 
-BENCHMARK_DEFINE_F(DISABLED_ScanBenchmark, Scan)(State &state)
+BENCHMARK_DEFINE_F(ScanBenchmark, Scan)(State &state)
 {
   int              max_range_size = 100;
   uint32_t         max            = GetRangeMax(state);
@@ -395,11 +395,11 @@ BENCHMARK_DEFINE_F(DISABLED_ScanBenchmark, Scan)(State &state)
   state.counters["other"]                 = Counter(stat.scan_other_count, Counter::kIsRate);
 }
 
-BENCHMARK_REGISTER_F(DISABLED_ScanBenchmark, Scan)->Threads(10)->Arg(4 * 10000);
+BENCHMARK_REGISTER_F(ScanBenchmark, Scan)->Threads(10)->Arg(4 * 10000);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class DISABLED_ScanChunkBenchmark : public BenchmarkBase
+class ScanChunkBenchmark : public BenchmarkBase
 {
 public:
   string Name() const override { return "scan_chunk"; }
@@ -419,7 +419,7 @@ public:
   }
 };
 
-BENCHMARK_DEFINE_F(DISABLED_ScanChunkBenchmark, ScanChunk)(State &state)
+BENCHMARK_DEFINE_F(ScanChunkBenchmark, ScanChunk)(State &state)
 {
   Stat stat;
   for (auto _ : state) {
@@ -432,16 +432,16 @@ BENCHMARK_DEFINE_F(DISABLED_ScanChunkBenchmark, ScanChunk)(State &state)
   state.counters["other"]                 = Counter(stat.scan_other_count, Counter::kIsRate);
 }
 
-BENCHMARK_REGISTER_F(DISABLED_ScanChunkBenchmark, ScanChunk)->Threads(10)->Arg(4 * 10000);
+BENCHMARK_REGISTER_F(ScanChunkBenchmark, ScanChunk)->Threads(10)->Arg(4 * 10000);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-struct DISABLED_MixtureBenchmark : public BenchmarkBase
+struct MixtureBenchmark : public BenchmarkBase
 {
   string Name() const override { return "mixture"; }
 };
 
-BENCHMARK_DEFINE_F(DISABLED_MixtureBenchmark, Mixture)(State &state)
+BENCHMARK_DEFINE_F(MixtureBenchmark, Mixture)(State &state)
 {
   pair<int32_t, int32_t> data_range{0, GetRangeMax(state)};
   pair<int32_t, int32_t> scan_range{1, 100};
@@ -498,7 +498,7 @@ BENCHMARK_DEFINE_F(DISABLED_MixtureBenchmark, Mixture)(State &state)
       {"scan_open_failed", Counter(stat.scan_open_failed_count, Counter::kIsRate)}});
 }
 
-BENCHMARK_REGISTER_F(DISABLED_MixtureBenchmark, Mixture)->Threads(10)->Arg(4 * 10000);
+BENCHMARK_REGISTER_F(MixtureBenchmark, Mixture)->Threads(10)->Arg(4 * 10000);
 
 ////////////////////////////////////////////////////////////////////////////////
 
