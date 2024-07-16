@@ -505,7 +505,7 @@ RC PaxRecordPageHandler::get_record(const RID &rid, Record &record)
     offset += column_len;
   }
 
-  record.set_data(data, page_header_->record_real_size);
+  record.set_data_owner(data, page_header_->record_real_size);
   return RC::SUCCESS;
 }
 
