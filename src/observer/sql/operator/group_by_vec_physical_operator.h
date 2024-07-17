@@ -36,6 +36,7 @@ private:
   std::vector<Expression *>                 aggregate_expressions_;   /// 聚合表达式
   std::vector<Expression *>                 value_expressions_;
   Chunk                                     chunk_;
+  Chunk                                     output_chunk_;
   std::unique_ptr<AggregateHashTable>       aggregate_hash_table_;
   std::unique_ptr<AggregateHashTable::Scanner>  aggregate_hash_table_scanner_;
 };

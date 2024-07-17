@@ -48,21 +48,19 @@ RC GroupByVecPhysicalOperator::open(Trx *trx)
     // 分组列
     Chunk group_by_chunk;
     for (size_t group_by_idx = 0; group_by_idx < group_by_expressions_.size(); group_by_idx++) {
-      Column column;
-      group_by_expressions_[group_by_idx]->get_column(chunk_, column);
-      std::unique_ptr<Column> c = make_unique<Column>();
-      c->reference(column);
-      group_by_chunk.add_column(std::move(c), group_by_idx);
+      auto column = std::make_unique<Column>();
+      group_by_expressions_[group_by_idx]->get_column(chunk_, *column);
+      output_chunk_.add_column(make_unique<Column>(column->attr_type(), column->attr_len()), group_by_idx);
+      group_by_chunk.add_column(std::move(column), group_by_idx);
     }
     // 聚合列
     Chunk aggregate_chunk;
     for (size_t aggr_idx = 0; aggr_idx < aggregate_expressions_.size(); aggr_idx++) {
-      Column column;
-      value_expressions_[aggr_idx]->get_column(chunk_, column);
+      auto column = std::make_unique<Column>();
+      value_expressions_[aggr_idx]->get_column(chunk_, *column);
       ASSERT(aggregate_expressions_[aggr_idx]->type() == ExprType::AGGREGATION, "expect aggregate expression");
-      std::unique_ptr<Column> c = make_unique<Column>();
-      c->reference(column);
-      aggregate_chunk.add_column(std::move(c), aggr_idx);
+      output_chunk_.add_column(make_unique<Column>(column->attr_type(), column->attr_len()), aggr_idx + group_by_expressions_.size());
+      aggregate_chunk.add_column(std::move(column), aggr_idx);
     }
     aggregate_hash_table_->add_chunk(group_by_chunk, aggregate_chunk);
   }
@@ -78,7 +76,9 @@ RC GroupByVecPhysicalOperator::open(Trx *trx)
 
 RC GroupByVecPhysicalOperator::next(Chunk &chunk)
 {
-  RC rc = aggregate_hash_table_scanner_->next(chunk);
+  output_chunk_.reset_data();
+  RC rc = aggregate_hash_table_scanner_->next(output_chunk_);
+  chunk.reference(output_chunk_);
   return rc;
 }
 

@@ -19,10 +19,17 @@ RC StandardAggregateHashTable::add_chunk(Chunk &groups_chunk, Chunk &aggrs_chunk
     std::vector<Value> aggrs_value;
     for (int j = 0; j < groups_chunk.column_num(); j++) {
       groups_value.push_back(groups_chunk.get_value(j, i));
+    }
+    for (int j = 0; j < aggrs_chunk.column_num(); j++) {
       aggrs_value.push_back(aggrs_chunk.get_value(j, i));
     }
     if (aggr_values_.find(groups_value) == aggr_values_.end()) {  // not exist in hash table
-      aggr_values_.insert(std::make_pair(groups_value, aggrs_value));
+      // initialize the aggr value vector
+      std::vector<Value> init_aggrs_value(aggrs_value.size());
+      for (int i = 0; i < init_aggrs_value.size(); i++) {
+        init_aggrs_value[i].set_type(aggrs_value[i].attr_type());
+      }
+      aggr_values_.insert(std::make_pair(groups_value, std::vector<Value>(init_aggrs_value)));
     }
     aggregate(aggr_values_[groups_value], aggrs_value);
   }
