@@ -103,6 +103,7 @@ RC AggregateVecPhysicalOperator::next(Chunk &chunk)
   if (emited_) {
     return RC::RECORD_EOF;
   }
+  emited_ = true;
   RC rc = RC::SUCCESS;
   output_chunk_.reset_data();
   for (int i = 0; i < output_chunk_.column_num(); i++) {
