@@ -280,9 +280,9 @@ template <typename V>
 void LinearProbingAggregateHashTable<V>::add_batch(int *input_keys, V *input_values, int len)
 {
 
-  for (int i = 0; i < len; i++) {
-    insert(input_keys[i], input_values[i]);
-  }
+  // for (int i = 0; i < len; i++) {
+  //   insert(input_keys[i], input_values[i]);
+  // }
 
   // inv (invalid) 表示是否有效，inv[i] = -1 表示有效，inv[i] = 0 表示无效。
   // key[SIMD_WIDTH],value[SIMD_WIDTH] 表示当前循环中处理的键值对。
@@ -290,6 +290,53 @@ void LinearProbingAggregateHashTable<V>::add_batch(int *input_keys, V *input_val
   // i = 0 表示selective load 的起始位置。
   // inv 全部初始化为 -1
   // off 全部初始化为 0
+  int inv[SIMD_WIDTH];
+  int off[SIMD_WIDTH];
+  int key[SIMD_WIDTH];
+  V value[SIMD_WIDTH];
+  memset(inv, -1, sizeof(inv));
+  memset(off,  0, sizeof(off));
+  int i = 0;
+  for (; i + SIMD_WIDTH <= len;) {
+    for (int j = 0; j < SIMD_WIDTH; j++) {
+      if (inv[j] == -1) {
+        key[j] = input_keys[i];
+        value[j] = input_values[i];
+        inv[j] = 0;
+        off[j] = 0;
+        i++;
+      }
+    }
+    for (int j = 0; j < SIMD_WIDTH; j++) {
+      int index = ((key[j] + off[j]) % capacity_ + capacity_) % capacity_;
+      if (keys_[index] == EMPTY_KEY) {
+        size_++;
+        keys_[index] = key[j];
+        values_[index] = value[j];
+        inv[j] = -1;
+        off[j] = 0;
+        break;
+      } else if (keys_[index] == key[j]) {
+        aggregate(&values_[index], value[j]);
+        inv[j] = -1;
+        off[j] = 0;
+        break;
+      } else {
+        off[j]++;
+        if (off[j] > capacity_) {
+          break;
+        }
+      }
+    }
+  }
+  for (int j = 0; j < SIMD_WIDTH; j++) {
+    if (inv[j] == 0) {
+      insert(key[j], value[j]);
+    }
+  }
+  for (; i < len; i++) {
+    insert(input_keys[i], input_values[i]);
+  }
 
   // for (; i + SIMD_WIDTH <= len;) {
     // 1: 根据 `inv` 变量的值，从 `input_keys` 中 `selective load` `SIMD_WIDTH` 个不同的输入键值对。
