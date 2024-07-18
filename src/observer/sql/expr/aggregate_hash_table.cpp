@@ -168,6 +168,34 @@ void LinearProbingAggregateHashTable<V>::Scanner::close_scan()
 }
 
 template <typename V>
+RC LinearProbingAggregateHashTable<V>::insert(int key, V value)
+{
+  RC  rc          = RC::SUCCESS;
+  int index       = (key % capacity_ + capacity_) % capacity_;
+  int iterate_cnt = 0;
+  while (true) {
+    if (keys_[index] == EMPTY_KEY) {
+      size_++;
+      keys_[index] = key;
+      values_[index] = value;
+      break;
+    } else if (keys_[index] == key) {
+      aggregate(&values_[index], value);
+      break;
+    } else {
+      index += 1;
+      index %= capacity_;
+      iterate_cnt++;
+      if (iterate_cnt > capacity_) {
+        rc = RC::FULL;
+        break;
+      }
+    }
+  }
+  return rc;
+}
+
+template <typename V>
 RC LinearProbingAggregateHashTable<V>::get(int key, V &value)
 {
   RC  rc          = RC::SUCCESS;
@@ -251,8 +279,10 @@ void LinearProbingAggregateHashTable<V>::resize_if_need()
 template <typename V>
 void LinearProbingAggregateHashTable<V>::add_batch(int *input_keys, V *input_values, int len)
 {
-  // your code here
-  exit(-1);
+
+  for (int i = 0; i < len; i++) {
+    insert(input_keys[i], input_values[i]);
+  }
 
   // inv (invalid) 表示是否有效，inv[i] = -1 表示有效，inv[i] = 0 表示无效。
   // key[SIMD_WIDTH],value[SIMD_WIDTH] 表示当前循环中处理的键值对。
@@ -273,7 +303,7 @@ void LinearProbingAggregateHashTable<V>::add_batch(int *input_keys, V *input_val
   // }
   //7. 通过标量线性探测，处理剩余键值对
 
-  // resize_if_need();
+  resize_if_need();
 }
 
 template <typename V>

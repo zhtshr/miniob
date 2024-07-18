@@ -136,6 +136,8 @@ public:
   {}
   virtual ~LinearProbingAggregateHashTable() {}
 
+  RC insert(int key, V value);
+
   RC get(int key, V &value);
 
   RC iter_get(int pos, int &key, V &value);

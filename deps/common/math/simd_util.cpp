@@ -22,22 +22,56 @@ int mm256_extract_epi32_var_indx(const __m256i vec, const unsigned int i)
 
 int mm256_sum_epi32(const int *values, int size)
 {
-  // your code here
-  int sum = 0;
-  for (int i = 0; i < size; i++) {
-    sum += values[i];
+  int sum[8];
+  __m256i sum256 = _mm256_setzero_si256();
+  __m256i load256 = _mm256_setzero_si256();
+  int i = 0;
+  for (; i <= size - SIMD_WIDTH; i += SIMD_WIDTH)
+  {
+    load256 = _mm256_loadu_si256((const __m256i *)&values[i]);
+    sum256 = _mm256_add_epi32(sum256, load256);
   }
-  return sum;
+  _mm256_storeu_si256((__m256i*)sum, sum256);
+  for (int j = 1; j < SIMD_WIDTH; j++) {
+    sum[0] += sum[j];
+  }
+  for (; i < size; i++) {
+    sum[0] += values[i];
+  }
+  return sum[0];
+  // your code here
+  // int sum = 0;
+  // for (int i = 0; i < size; i++) {
+  //   sum += values[i];
+  // }
+  // return sum;
 }
 
 float mm256_sum_ps(const float *values, int size)
 {
-  // your code here
-  float sum = 0;
-  for (int i = 0; i < size; i++) {
-    sum += values[i];
+  float sum[8];
+  __m256 sum256 = _mm256_setzero_ps();
+  __m256 load256 = _mm256_setzero_ps();
+  int i = 0;
+  for (; i <= size - SIMD_WIDTH; i += SIMD_WIDTH)
+  {
+    load256 = _mm256_loadu_ps(&values[i]);
+    sum256 = _mm256_add_ps(sum256, load256);
   }
-  return sum;
+  _mm256_storeu_ps(sum, sum256);
+  for (int j = 1; j < SIMD_WIDTH; j++) {
+    sum[0] += sum[j];
+  }
+  for (; i < size; i++) {
+    sum[0] += values[i];
+  }
+  return sum[0];
+  // your code here
+  // float sum = 0;
+  // for (int i = 0; i < size; i++) {
+  //   sum += values[i];
+  // }
+  // return sum;
 }
 
 template <typename V>
